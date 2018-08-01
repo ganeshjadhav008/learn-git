@@ -1,5 +1,5 @@
 <?php
-
+naresh
 /**
  * @file
  * Drupal site-specific configuration file.
@@ -22,7 +22,7 @@
  * http://www.drupal.org/mysite/test/, the 'settings.php'
  * is searched in the following directories:
  *
- ffd
+ ffdgit
  * - sites/www.drupal.org.mysite.test
  * - sites/drupal.org.mysite.test
  * - sites/org.mysite.test
