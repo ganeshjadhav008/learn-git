@@ -10,7 +10,7 @@
  * after making your modifications. Failure to remove write permissions
  * to this file is a security risk.
  *
- * The configuration file to be loaded is based upon the rules below.
+ * The  configuration file to be loaded is based upon the rules below.
  *
  * The configuration directory will be discovered by stripping the
  * website's hostname from left to right and pathname from right to
