@@ -1,0 +1,11 @@
+AKDN-1647
+1) In the Filters, the term LANGUAGES. Also in the individual pages (but it works in individual press releases).- done
+2) On the listing pages, next to Read under a publication, the term Download is not translated. - Done
+3) In individual pages , the term PUBLICATIONS in the RHS column is not translated.
+4) Related Links, under the button Download. - Done
+
+
+1) should we pull perdiocally pull from akdn_main_dev and akdn_main_stg
+2) if i am staying AKDN-1661-branch and creating tag and removing that branch is that tag will removed?
+
+git remote rename acquia origin

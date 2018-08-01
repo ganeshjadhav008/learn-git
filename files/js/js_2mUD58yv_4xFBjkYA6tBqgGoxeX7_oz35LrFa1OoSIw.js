@@ -1,0 +1,2103 @@
+/**
+ * Attaches the calendar behavior to all required fields
+ */
+(function($) {
+  function makeFocusHandler(e) {
+    if (!$(this).hasClass('date-popup-init')) {
+      var datePopup = e.data;
+      // Explicitely filter the methods we accept.
+      switch (datePopup.func) {
+        case 'datepicker':
+          $(this)
+            .datepicker(datePopup.settings)
+            .addClass('date-popup-init');
+          $(this).click(function(){
+            $(this).focus();
+          });
+          if (datePopup.settings.syncEndDate) {
+            $('.start-date-wrapper').each(function(){
+              var start_date_wrapper = this;
+              $(this).find('input:eq(0)').change(function(){
+                $(start_date_wrapper).next('.end-date-wrapper').find('input:eq(0)').val($(this).val());
+              });
+            });
+          }
+          break;
+
+        case 'timeEntry':
+          $(this)
+            .timeEntry(datePopup.settings)
+            .addClass('date-popup-init');
+          $(this).click(function(){
+            $(this).focus();
+          });
+          break;
+
+        case 'timepicker':
+          // Translate the PHP date format into the style the timepicker uses.
+          datePopup.settings.timeFormat = datePopup.settings.timeFormat
+            // 12-hour, leading zero,
+            .replace('h', 'hh')
+            // 12-hour, no leading zero.
+            .replace('g', 'h')
+            // 24-hour, leading zero.
+            .replace('H', 'HH')
+            // 24-hour, no leading zero.
+            .replace('G', 'H')
+            // AM/PM.
+            .replace('A', 'p')
+            // Minutes with leading zero.
+            .replace('i', 'mm')
+            // Seconds with leading zero.
+            .replace('s', 'ss');
+
+          datePopup.settings.startTime = new Date(datePopup.settings.startTime);
+          $(this)
+            .timepicker(datePopup.settings)
+            .addClass('date-popup-init');
+          $(this).click(function(){
+            $(this).focus();
+          });
+          break;
+      }
+    }
+  }
+
+  Drupal.behaviors.date_popup = {
+    attach: function (context) {
+      for (var id in Drupal.settings.datePopup) {
+        $('#'+ id).bind('focus', Drupal.settings.datePopup[id], makeFocusHandler);
+      }
+    }
+  };
+})(jQuery);
+;
+(function ($) {
+
+// Behavior to load FlexSlider
+Drupal.behaviors.flexslider = {
+  attach: function(context, settings) {
+    $('.flexslider', context).once('flexslider', function() {
+      $(this).each(function() {
+        var $this = $(this);
+        var id = $this.attr('id');
+        if (settings.flexslider !== undefined) {
+          var optionset = settings.flexslider.instances[id];
+          if (optionset) {
+            $this.flexslider(settings.flexslider.optionsets[optionset]);
+          }
+          else {
+            $this.flexslider();
+          }
+        }
+      });
+      // Remove width/height attributes
+      $(this).find('ul.slides li img').removeAttr('height');
+      $(this).find('ul.slides li img').removeAttr('width');  
+    });
+  }
+};
+
+}(jQuery));
+;
+(function ($) {
+  // @todo convert to use Drupal.behaviors
+  // @todo add configuration options
+
+  // Register callback to save references to flexslider instances. Allows
+  // Views Slideshow controls to affect the slider
+  function flexslider_views_slideshow_register(fullId, slider) {
+    Drupal.flexsliderViewsSlideshow.active = Drupal.flexsliderViewsSlideshow.active || {};
+    Drupal.flexsliderViewsSlideshow.active[fullId] = slider;
+  }
+
+  Drupal.behaviors.flexsliderViewsSlideshow = {
+    attach: function (context) {
+      $('.flexslider_views_slideshow_main:not(.flexslider_views_slideshow-processed)', context).addClass('flexslider_views_slideshow-processed').each(function() {
+        // Get the ID of the slideshow
+        var fullId = '#' + $(this).attr('id');
+
+        // Create settings container
+        var settings = Drupal.settings.flexslider_views_slideshow[fullId];
+
+        // @todo map the settings from the form to their javascript equivalents
+        settings.targetId = fullId;
+
+        settings.loaded = false;
+
+        // Assign default settings
+        settings.opts = {
+          animation:settings.animation,
+          slideDirection:settings.slideDirection,
+          slideshow:settings.slideshow,
+          slideshowSpeed:settings.slideshowSpeed,
+          animationDuration:settings.animationDuration,
+          directionNav:settings.directionNav,
+          controlNav:settings.controlNav,
+          keyboardNav:settings.keyboardNav,
+          mousewheel:settings.mousewheel,
+          prevText:settings.prevText,
+          nextText:settings.nextText,
+          pausePlay:settings.pausePlay,
+          pauseText:settings.pauseText,
+          playText:settings.playText,
+          randomize:settings.randomize,
+          slideToStart:settings.slideToStart,
+          animationLoop:settings.animationLoop,
+          pauseOnAction:settings.pauseOnAction,
+          pauseOnHover:settings.pauseOnHover,
+          controlsContainer:settings.controlsContainer,
+          manualControls:settings.manualControls,
+
+          start: function(slider) {
+            flexslider_views_slideshow_register(fullId, slider);
+            eval(settings.start);
+          },
+          before: function(slider) {
+            eval(settings.before);
+          },
+          after: function(slider) {
+            eval(settings.after);
+          },
+          end: function(slider) {
+            eval(settings.end);
+          }
+        };
+
+        Drupal.flexsliderViewsSlideshow.load(fullId);
+      });
+    }
+  };
+
+
+  // Initialize the flexslider object
+  Drupal.flexsliderViewsSlideshow = Drupal.flexsliderViewsSlideshow || {};
+
+  // Load mapping from Views Slideshow to FlexSlider
+  Drupal.flexsliderViewsSlideshow.load = function(fullId) {
+    var settings = Drupal.settings.flexslider_views_slideshow[fullId];
+
+    // Ensure the slider isn't already loaded
+    if (!settings.loaded) {
+      $(settings.targetId + " .flexslider").flexslider(settings.opts);
+      settings.loaded = true;
+    }
+  }
+
+  // Pause mapping from Views Slideshow to FlexSlider
+  Drupal.flexsliderViewsSlideshow.pause = function (options) {
+    Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].pause();
+    Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].manualPause = true;
+  }
+
+  // Play mapping from Views Slideshow to FlexSlider
+  Drupal.flexsliderViewsSlideshow.play = function (options) {
+    Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].resume();
+    Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].manualPause = false;
+  }
+
+  Drupal.flexsliderViewsSlideshow.nextSlide = function (options) {
+    var target = Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].getTarget('next');
+
+    if (Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].canAdvance(target)) {
+      Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].flexAnimate(target, Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].vars.pauseOnAction);
+    }
+  }
+  Drupal.flexsliderViewsSlideshow.previousSlide = function (options) {
+    var target = Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].getTarget('prev');
+
+    if (Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].canAdvance(target)) {
+      Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].flexAnimate(target, Drupal.flexsliderViewsSlideshow.active['#flexslider_views_slideshow_main_' + options.slideshowID].vars.pauseOnAction);
+    }
+  }
+  // @todo add support for jquery mobile page init
+})(jQuery);;
+(function ($) {
+  'use strict';
+
+  Drupal.behaviors.eu_cookie_compliance_popup = {
+    attach: function(context, settings) {
+      if (context !== document) {
+        return;
+      }
+
+      // If configured, check JSON callback to determine if in EU.
+      if (Drupal.settings.eu_cookie_compliance.popup_eu_only_js) {
+        if (Drupal.eu_cookie_compliance.showBanner()) {
+          var url = Drupal.settings.basePath + 'eu-cookie-compliance-check';
+          var data = {};
+          $.getJSON(url, data, function(data) {
+            // If in the EU, show the compliance popup.
+            if (data.in_eu) {
+              Drupal.eu_cookie_compliance.execute();
+            }
+            // If not in EU, set an agreed cookie automatically.
+            else {
+              Drupal.eu_cookie_compliance.setStatus(2);
+            }
+          });
+        }
+      }
+      // Otherwise, fallback to standard behavior which is to render the popup.
+      else {
+        Drupal.eu_cookie_compliance.execute();
+      }
+    }
+  };
+
+  Drupal.eu_cookie_compliance = {};
+
+  Drupal.eu_cookie_compliance.execute = function() {
+    try {
+        if (!Drupal.settings.eu_cookie_compliance.popup_enabled) {
+          return;
+        }
+        if (!Drupal.eu_cookie_compliance.cookiesEnabled()) {
+          return;
+        }
+        Drupal.eu_cookie_compliance.updateCheck();
+        var status = Drupal.eu_cookie_compliance.getCurrentStatus();
+        if (status === 0 || status === null) {
+          if (!Drupal.settings.eu_cookie_compliance.disagree_do_not_show_popup || status === null) {
+            Drupal.eu_cookie_compliance.createPopup(Drupal.settings.eu_cookie_compliance.popup_html_info);
+            Drupal.eu_cookie_compliance.attachAgreeEvents();
+          }
+        } else if (status === 1 && Drupal.settings.eu_cookie_compliance.popup_agreed_enabled) {
+          Drupal.eu_cookie_compliance.createPopup(Drupal.settings.eu_cookie_compliance.popup_html_agreed);
+          Drupal.eu_cookie_compliance.attachHideEvents();
+        }
+      }
+      catch(e) {
+      }
+  };
+
+  Drupal.eu_cookie_compliance.createPopup = function(html) {
+    // This fixes a problem with jQuery 1.9.
+    var $popup = $('<div></div>').html(html);
+    $popup.attr('id', 'sliding-popup');
+    if (!Drupal.settings.eu_cookie_compliance.popup_use_bare_css) {
+      $popup.height(Drupal.settings.eu_cookie_compliance.popup_height)
+          .width(Drupal.settings.eu_cookie_compliance.popup_width);
+    }
+    $popup.hide();
+    var height = 0;
+    if (Drupal.settings.eu_cookie_compliance.popup_position) {
+      $popup.prependTo('body');
+      height = $popup.height();
+      $popup.show()
+        .attr('class', 'sliding-popup-top clearfix')
+        .css('top', -1 * height)
+        .animate({top: 0}, Drupal.settings.eu_cookie_compliance.popup_delay);
+    } else {
+      if (Drupal.settings.eu_cookie_compliance.better_support_for_screen_readers) {
+        $popup.prependTo('body');
+      }
+      else {
+        $popup.appendTo('body');
+      }
+      height = $popup.height();
+      $popup.show()
+        .attr('class', 'sliding-popup-bottom')
+        .css('bottom', -1 * height)
+        .animate({bottom: 0}, Drupal.settings.eu_cookie_compliance.popup_delay);
+    }
+  };
+
+  Drupal.eu_cookie_compliance.attachAgreeEvents = function() {
+    var clickingConfirms = Drupal.settings.eu_cookie_compliance.popup_clicking_confirmation;
+    var scrollConfirms = Drupal.settings.eu_cookie_compliance.popup_scrolling_confirmation;
+
+    $('.agree-button').click(Drupal.eu_cookie_compliance.acceptAction);
+
+    if (clickingConfirms) {
+      $('a, input[type=submit], button[type=submit]').bind('click.euCookieCompliance', Drupal.eu_cookie_compliance.acceptAction);
+    }
+
+    if (scrollConfirms) {
+      $(window).bind('scroll', Drupal.eu_cookie_compliance.acceptAction);
+    }
+
+    $('.find-more-button').not('.find-more-button-processed').addClass('find-more-button-processed').click(Drupal.eu_cookie_compliance.moreInfoAction);
+  };
+
+  Drupal.eu_cookie_compliance.attachHideEvents = function() {
+    var popupHideAgreed = Drupal.settings.eu_cookie_compliance.popup_hide_agreed;
+    var clickingConfirms = Drupal.settings.eu_cookie_compliance.popup_clicking_confirmation;
+    $('.hide-popup-button').click(function() {
+      Drupal.eu_cookie_compliance.changeStatus(2);
+    });
+    if (clickingConfirms) {
+      $('a, input[type=submit], button[type=submit]').unbind('click.euCookieCompliance');
+    }
+    if (popupHideAgreed) {
+      $('a, input[type=submit], button[type=submit]').bind('click.euCookieComplianceHideAgreed', function() {
+        Drupal.eu_cookie_compliance.changeStatus(2);
+      });
+    }
+    $('.find-more-button').not('.find-more-button-processed').addClass('find-more-button-processed').click(Drupal.eu_cookie_compliance.moreInfoAction);
+  };
+
+  Drupal.eu_cookie_compliance.acceptAction = function () {
+    var agreedEnabled = Drupal.settings.eu_cookie_compliance.popup_agreed_enabled;
+    var nextStatus = 1;
+    if(!agreedEnabled) {
+      Drupal.eu_cookie_compliance.setStatus(1);
+      nextStatus = 2;
+    }
+    Drupal.eu_cookie_compliance.changeStatus(nextStatus);
+  };
+
+  Drupal.eu_cookie_compliance.moreInfoAction = function () {
+    if (Drupal.settings.eu_cookie_compliance.disagree_do_not_show_popup) {
+      Drupal.eu_cookie_compliance.setStatus(0);
+      $('#sliding-popup').remove();
+    }
+    else {
+      if (Drupal.settings.eu_cookie_compliance.popup_link_new_window) {
+        window.open(Drupal.settings.eu_cookie_compliance.popup_link);
+      }
+      else {
+        window.location.href = Drupal.settings.eu_cookie_compliance.popup_link;
+      }
+    }
+  };
+
+  Drupal.eu_cookie_compliance.getCurrentStatus = function() {
+    var value = $.cookie('cookie-agreed');
+    value = parseInt(value);
+    if (isNaN(value)) {
+      value = null;
+    }
+    return value;
+  };
+
+  Drupal.eu_cookie_compliance.changeStatus = function(value) {
+    var status = Drupal.eu_cookie_compliance.getCurrentStatus();
+    if (status === value) {
+      return;
+    }
+    if (Drupal.settings.eu_cookie_compliance.popup_position) {
+      $('.sliding-popup-top').animate({top: $('#sliding-popup').height() * -1}, Drupal.settings.eu_cookie_compliance.popup_delay, function () {
+        if (status === null) {
+          $('#sliding-popup').html(Drupal.settings.eu_cookie_compliance.popup_html_agreed).animate({top: 0}, Drupal.settings.eu_cookie_compliance.popup_delay);
+          Drupal.eu_cookie_compliance.attachHideEvents();
+        }
+        else if (status === 1) {
+          $('#sliding-popup').remove();
+          Drupal.eu_cookie_compliance.reloadPage();
+        }
+      });
+    } else {
+      $('.sliding-popup-bottom').animate({bottom: $('#sliding-popup').height() * -1}, Drupal.settings.eu_cookie_compliance.popup_delay, function () {
+        if (status === null) {
+          $('#sliding-popup').html(Drupal.settings.eu_cookie_compliance.popup_html_agreed).animate({bottom: 0}, Drupal.settings.eu_cookie_compliance.popup_delay);
+          Drupal.eu_cookie_compliance.attachHideEvents();
+        }
+        else if (status === 1) {
+          $('#sliding-popup').remove();
+          Drupal.eu_cookie_compliance.reloadPage();
+        }
+      });
+    }
+    Drupal.eu_cookie_compliance.setStatus(value);
+  };
+
+  Drupal.eu_cookie_compliance.setStatus = function(status) {
+    var date = new Date();
+    var domain = Drupal.settings.eu_cookie_compliance.domain ? Drupal.settings.eu_cookie_compliance.domain : '';
+    var path = Drupal.settings.basePath;
+    if(path.length > 1) {
+      var pathEnd = path.length - 1;
+      if (path.lastIndexOf('/') === pathEnd) {
+        path = path.substring(0, pathEnd);
+      }
+    }
+    date.setDate(date.getDate() + parseInt(Drupal.settings.eu_cookie_compliance.cookie_lifetime));
+    $.cookie('cookie-agreed', status, {expires: date, path: path, domain: domain});
+  };
+
+  Drupal.eu_cookie_compliance.hasAgreed = function() {
+    var status = Drupal.eu_cookie_compliance.getCurrentStatus();
+    return (status === 1 || status === 2);
+  };
+
+  Drupal.eu_cookie_compliance.showBanner = function() {
+    var showBanner = false;
+    var status = Drupal.eu_cookie_compliance.getCurrentStatus();
+    if (status === 0 || status === null) {
+      if (!Drupal.settings.eu_cookie_compliance.disagree_do_not_show_popup || status === null) {
+        showBanner = true;
+      }
+    } else if (status === 1 && Drupal.settings.eu_cookie_compliance.popup_agreed_enabled) {
+      showBanner = true;
+    }
+    return showBanner;
+  };
+
+  Drupal.eu_cookie_compliance.cookiesEnabled = function() {
+    var cookieEnabled = navigator.cookieEnabled;
+    if (typeof navigator.cookieEnabled === 'undefined' && !cookieEnabled) {
+      document.cookie = 'testCookie';
+      cookieEnabled = (document.cookie.indexOf('testCookie') !== -1);
+    }
+    return cookieEnabled;
+  };
+
+  Drupal.eu_cookie_compliance.reloadPage = function() {
+    if (Drupal.settings.eu_cookie_compliance.reload_page) {
+      location.reload();
+    }
+  };
+
+  // This code upgrades the cookie agreed status when upgrading for an old version.
+  Drupal.eu_cookie_compliance.updateCheck = function () {
+    var legacyCookie = 'cookie-agreed-' + Drupal.settings.eu_cookie_compliance.popup_language;
+    var domain = Drupal.settings.eu_cookie_compliance.domain ? Drupal.settings.eu_cookie_compliance.domain : '';
+    var path = Drupal.settings.basePath;
+    var cookie;
+    if ((cookie = $.cookie(legacyCookie)) !== null) {
+      $.cookie('cookie-agreed', cookie, { path:  path, domain: domain });
+      $.cookie(legacyCookie, null, { path: path, domain: domain });
+    }
+  }
+
+})(jQuery);
+;
+// Chosen, a Select Box Enhancer for jQuery and Protoype
+// by Patrick Filler for Harvest, http://getharvest.com
+//
+// Version 0.9.13
+// Full source at https://github.com/harvesthq/chosen
+// Copyright (c) 2011 Harvest http://getharvest.com
+
+// MIT License, https://github.com/harvesthq/chosen/blob/master/LICENSE.md
+// This file is generated by `cake build`, do not edit it by hand.
+(function() {
+  var SelectParser;
+
+  SelectParser = (function() {
+
+    function SelectParser() {
+      this.options_index = 0;
+      this.parsed = [];
+    }
+
+    SelectParser.prototype.add_node = function(child) {
+      if (child.nodeName.toUpperCase() === "OPTGROUP") {
+        return this.add_group(child);
+      } else {
+        return this.add_option(child);
+      }
+    };
+
+    SelectParser.prototype.add_group = function(group) {
+      var group_position, option, _i, _len, _ref, _results;
+      group_position = this.parsed.length;
+      this.parsed.push({
+        array_index: group_position,
+        group: true,
+        label: group.label,
+        children: 0,
+        disabled: group.disabled
+      });
+      _ref = group.childNodes;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        option = _ref[_i];
+        _results.push(this.add_option(option, group_position, group.disabled));
+      }
+      return _results;
+    };
+
+    SelectParser.prototype.add_option = function(option, group_position, group_disabled) {
+      if (option.nodeName.toUpperCase() === "OPTION") {
+        if (option.text !== "") {
+          if (group_position != null) {
+            this.parsed[group_position].children += 1;
+          }
+          this.parsed.push({
+            array_index: this.parsed.length,
+            options_index: this.options_index,
+            value: option.value,
+            text: option.text,
+            html: option.innerHTML,
+            selected: option.selected,
+            disabled: group_disabled === true ? group_disabled : option.disabled,
+            group_array_index: group_position,
+            classes: option.className,
+            style: option.style.cssText
+          });
+        } else {
+          this.parsed.push({
+            array_index: this.parsed.length,
+            options_index: this.options_index,
+            empty: true
+          });
+        }
+        return this.options_index += 1;
+      }
+    };
+
+    return SelectParser;
+
+  })();
+
+  SelectParser.select_to_array = function(select) {
+    var child, parser, _i, _len, _ref;
+    parser = new SelectParser();
+    _ref = select.childNodes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      child = _ref[_i];
+      parser.add_node(child);
+    }
+    return parser.parsed;
+  };
+
+  this.SelectParser = SelectParser;
+
+}).call(this);
+
+/*
+Chosen source: generate output using 'cake build'
+Copyright (c) 2011 by Harvest
+*/
+
+
+(function() {
+  var AbstractChosen, root;
+
+  root = this;
+
+  AbstractChosen = (function() {
+
+    function AbstractChosen(form_field, options) {
+      this.form_field = form_field;
+      this.options = options != null ? options : {};
+      if (!AbstractChosen.browser_is_supported()) {
+        return;
+      }
+      this.is_multiple = this.form_field.multiple;
+      this.set_default_text();
+      this.set_default_values();
+      this.setup();
+      this.set_up_html();
+      this.register_observers();
+      this.finish_setup();
+    }
+
+    AbstractChosen.prototype.set_default_values = function() {
+      var _this = this;
+      this.click_test_action = function(evt) {
+        return _this.test_active_click(evt);
+      };
+      this.activate_action = function(evt) {
+        return _this.activate_field(evt);
+      };
+      this.active_field = false;
+      this.mouse_on_container = false;
+      this.results_showing = false;
+      this.result_highlighted = null;
+      this.result_single_selected = null;
+      this.allow_single_deselect = (this.options.allow_single_deselect != null) && (this.form_field.options[0] != null) && this.form_field.options[0].text === "" ? this.options.allow_single_deselect : false;
+      this.disable_search_threshold = this.options.disable_search_threshold || 0;
+      this.disable_search = this.options.disable_search || false;
+      this.enable_split_word_search = this.options.enable_split_word_search != null ? this.options.enable_split_word_search : true;
+      this.search_contains = this.options.search_contains || false;
+      this.choices = 0;
+      this.single_backstroke_delete = this.options.single_backstroke_delete || false;
+      this.max_selected_options = this.options.max_selected_options || Infinity;
+      return this.inherit_select_classes = this.options.inherit_select_classes || false;
+    };
+
+    AbstractChosen.prototype.set_default_text = function() {
+      if (this.form_field.getAttribute("placeholder")) {
+        this.default_text = this.form_field.getAttribute("placeholder");
+      } else if (this.is_multiple) {
+        this.default_text = this.options.placeholder_text_multiple || this.options.placeholder_text || AbstractChosen.default_multiple_text;
+      } else {
+        this.default_text = this.options.placeholder_text_single || this.options.placeholder_text || AbstractChosen.default_single_text;
+      }
+      return this.results_none_found = this.form_field.getAttribute("data-no_results_text") || this.options.no_results_text || AbstractChosen.default_no_result_text;
+    };
+
+    AbstractChosen.prototype.mouse_enter = function() {
+      return this.mouse_on_container = true;
+    };
+
+    AbstractChosen.prototype.mouse_leave = function() {
+      return this.mouse_on_container = false;
+    };
+
+    AbstractChosen.prototype.input_focus = function(evt) {
+      var _this = this;
+      if (this.is_multiple) {
+        if (!this.active_field) {
+          return setTimeout((function() {
+            return _this.container_mousedown();
+          }), 50);
+        }
+      } else {
+        if (!this.active_field) {
+          return this.activate_field();
+        }
+      }
+    };
+
+    AbstractChosen.prototype.input_blur = function(evt) {
+      var _this = this;
+      if (!this.mouse_on_container) {
+        this.active_field = false;
+        return setTimeout((function() {
+          return _this.blur_test();
+        }), 100);
+      }
+    };
+
+    AbstractChosen.prototype.result_add_option = function(option) {
+      var classes, style;
+      if (!option.disabled) {
+        option.dom_id = this.container_id + "_o_" + option.array_index;
+        classes = option.selected && this.is_multiple ? [] : ["active-result"];
+        if (option.selected) {
+          classes.push("result-selected");
+        }
+        if (option.group_array_index != null) {
+          classes.push("group-option");
+        }
+        if (option.classes !== "") {
+          classes.push(option.classes);
+        }
+        style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
+        return '<li id="' + option.dom_id + '" class="' + classes.join(' ') + '"' + style + '>' + option.html + '</li>';
+      } else {
+        return "";
+      }
+    };
+
+    AbstractChosen.prototype.results_update_field = function() {
+      this.set_default_text();
+      if (!this.is_multiple) {
+        this.results_reset_cleanup();
+      }
+      this.result_clear_highlight();
+      this.result_single_selected = null;
+      return this.results_build();
+    };
+
+    AbstractChosen.prototype.results_toggle = function() {
+      if (this.results_showing) {
+        return this.results_hide();
+      } else {
+        return this.results_show();
+      }
+    };
+
+    AbstractChosen.prototype.results_search = function(evt) {
+      if (this.results_showing) {
+        return this.winnow_results();
+      } else {
+        return this.results_show();
+      }
+    };
+
+    AbstractChosen.prototype.keyup_checker = function(evt) {
+      var stroke, _ref;
+      stroke = (_ref = evt.which) != null ? _ref : evt.keyCode;
+      this.search_field_scale();
+      switch (stroke) {
+        case 8:
+          if (this.is_multiple && this.backstroke_length < 1 && this.choices > 0) {
+            return this.keydown_backstroke();
+          } else if (!this.pending_backstroke) {
+            this.result_clear_highlight();
+            return this.results_search();
+          }
+          break;
+        case 13:
+          evt.preventDefault();
+          if (this.results_showing) {
+            return this.result_select(evt);
+          }
+          break;
+        case 27:
+          if (this.results_showing) {
+            this.results_hide();
+          }
+          return true;
+        case 9:
+        case 38:
+        case 40:
+        case 16:
+        case 91:
+        case 17:
+          break;
+        default:
+          return this.results_search();
+      }
+    };
+
+    AbstractChosen.prototype.generate_field_id = function() {
+      var new_id;
+      new_id = this.generate_random_id();
+      this.form_field.id = new_id;
+      return new_id;
+    };
+
+    AbstractChosen.prototype.generate_random_char = function() {
+      var chars, newchar, rand;
+      chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      rand = Math.floor(Math.random() * chars.length);
+      return newchar = chars.substring(rand, rand + 1);
+    };
+
+    AbstractChosen.prototype.container_width = function() {
+      var width;
+      if (this.options.width != null) {
+        return this.options.width;
+      }
+      width = window.getComputedStyle != null ? parseFloat(window.getComputedStyle(this.form_field).getPropertyValue('width')) : typeof jQuery !== "undefined" && jQuery !== null ? this.form_field_jq.outerWidth() : this.form_field.getWidth();
+      return width + "px";
+    };
+
+    AbstractChosen.browser_is_supported = function() {
+      var _ref;
+      if (window.navigator.appName === "Microsoft Internet Explorer") {
+        return (null !== (_ref = document.documentMode) && _ref >= 8);
+      }
+      return true;
+    };
+
+
+    AbstractChosen.default_multiple_text = "Select Some Options31231223";
+
+    AbstractChosen.default_single_text = "Select an Option";
+
+    AbstractChosen.default_no_result_text = "No results match";
+
+    return AbstractChosen;
+
+  })();
+
+  root.AbstractChosen = AbstractChosen;
+
+}).call(this);
+
+/*
+Chosen source: generate output using 'cake build'
+Copyright (c) 2011 by Harvest
+*/
+
+
+(function() {
+  var $, Chosen, get_side_border_padding, root,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  root = this;
+
+  $ = jQuery;
+
+  $.fn.extend({
+    chosen: function(options) {
+      if (!AbstractChosen.browser_is_supported()) {
+        return this;
+      }
+      return this.each(function(input_field) {
+        var $this;
+        $this = $(this);
+        if (!$this.hasClass("chzn-done")) {
+          return $this.data('chosen', new Chosen(this, options));
+        }
+      });
+    }
+  });
+
+  Chosen = (function(_super) {
+
+    __extends(Chosen, _super);
+
+    function Chosen() {
+      return Chosen.__super__.constructor.apply(this, arguments);
+    }
+
+    Chosen.prototype.setup = function() {
+      this.form_field_jq = $(this.form_field);
+      this.current_selectedIndex = this.form_field.selectedIndex;
+      return this.is_rtl = this.form_field_jq.hasClass("chzn-rtl");
+    };
+
+    Chosen.prototype.finish_setup = function() {
+      return this.form_field_jq.addClass("chzn-done");
+    };
+
+    Chosen.prototype.set_up_html = function() {
+      var container_classes, container_props;
+      this.container_id = this.form_field.id.length ? this.form_field.id.replace(/[^\w]/g, '_') : this.generate_field_id();
+      this.container_id += "_chzn";
+      container_classes = ["chzn-container"];
+      container_classes.push("chzn-container-" + (this.is_multiple ? "multi" : "single"));
+      if (this.inherit_select_classes && this.form_field.className) {
+        container_classes.push(this.form_field.className);
+      }
+      if (this.is_rtl) {
+        container_classes.push("chzn-rtl");
+      }
+      container_props = {
+        'id': this.container_id,
+        'class': container_classes.join(' '),
+        'style': "width: " + (this.container_width()) + ";",
+        'title': this.form_field.title
+      };
+      this.container = $("<div />", container_props);
+      if (this.is_multiple) {
+        this.container.html('<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + this.default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop"><ul class="chzn-results"></ul></div>');
+      } else {
+        this.container.html('<a href="javascript:void(0)" class="chzn-single chzn-default" tabindex="-1"><span>' + this.default_text + '</span><div><b></b></div></a><div class="chzn-drop"><div class="chzn-search"><input type="text" autocomplete="off" /></div><ul class="chzn-results"></ul></div>');
+      }
+      this.form_field_jq.hide().after(this.container);
+      this.dropdown = this.container.find('div.chzn-drop').first();
+      this.search_field = this.container.find('input').first();
+      this.search_results = this.container.find('ul.chzn-results').first();
+      this.search_field_scale();
+      this.search_no_results = this.container.find('li.no-results').first();
+      if (this.is_multiple) {
+        this.search_choices = this.container.find('ul.chzn-choices').first();
+        this.search_container = this.container.find('li.search-field').first();
+      } else {
+        this.search_container = this.container.find('div.chzn-search').first();
+        this.selected_item = this.container.find('.chzn-single').first();
+      }
+      this.results_build();
+      this.set_tab_index();
+      this.set_label_behavior();
+      return this.form_field_jq.trigger("liszt:ready", {
+        chosen: this
+      });
+    };
+
+    Chosen.prototype.register_observers = function() {
+      var _this = this;
+      this.container.mousedown(function(evt) {
+        _this.container_mousedown(evt);
+      });
+      this.container.mouseup(function(evt) {
+        _this.container_mouseup(evt);
+      });
+      this.container.mouseenter(function(evt) {
+        _this.mouse_enter(evt);
+      });
+      this.container.mouseleave(function(evt) {
+        _this.mouse_leave(evt);
+      });
+      this.search_results.mouseup(function(evt) {
+        _this.search_results_mouseup(evt);
+      });
+      this.search_results.mouseover(function(evt) {
+        _this.search_results_mouseover(evt);
+      });
+      this.search_results.mouseout(function(evt) {
+        _this.search_results_mouseout(evt);
+      });
+      this.form_field_jq.bind("liszt:updated", function(evt) {
+        _this.results_update_field(evt);
+      });
+      this.form_field_jq.bind("liszt:activate", function(evt) {
+        _this.activate_field(evt);
+      });
+      this.form_field_jq.bind("liszt:open", function(evt) {
+        _this.container_mousedown(evt);
+      });
+      this.search_field.blur(function(evt) {
+        _this.input_blur(evt);
+      });
+      this.search_field.keyup(function(evt) {
+        _this.keyup_checker(evt);
+      });
+      this.search_field.keydown(function(evt) {
+        _this.keydown_checker(evt);
+      });
+      this.search_field.focus(function(evt) {
+        _this.input_focus(evt);
+      });
+      if (this.is_multiple) {
+        return this.search_choices.click(function(evt) {
+          _this.choices_click(evt);
+        });
+      } else {
+        return this.container.click(function(evt) {
+          evt.preventDefault();
+        });
+      }
+    };
+
+    Chosen.prototype.search_field_disabled = function() {
+      this.is_disabled = this.form_field_jq[0].disabled;
+      if (this.is_disabled) {
+        this.container.addClass('chzn-disabled');
+        this.search_field[0].disabled = true;
+        if (!this.is_multiple) {
+          this.selected_item.unbind("focus", this.activate_action);
+        }
+        return this.close_field();
+      } else {
+        this.container.removeClass('chzn-disabled');
+        this.search_field[0].disabled = false;
+        if (!this.is_multiple) {
+          return this.selected_item.bind("focus", this.activate_action);
+        }
+      }
+    };
+
+    Chosen.prototype.container_mousedown = function(evt) {
+      if (!this.is_disabled) {
+        if (evt && evt.type === "mousedown" && !this.results_showing) {
+          evt.preventDefault();
+        }
+        if (!((evt != null) && ($(evt.target)).hasClass("search-choice-close"))) {
+          if (!this.active_field) {
+            if (this.is_multiple) {
+              this.search_field.val("");
+            }
+            $(document).click(this.click_test_action);
+            this.results_show();
+          } else if (!this.is_multiple && evt && (($(evt.target)[0] === this.selected_item[0]) || $(evt.target).parents("a.chzn-single").length)) {
+            evt.preventDefault();
+            this.results_toggle();
+          }
+          return this.activate_field();
+        }
+      }
+    };
+
+    Chosen.prototype.container_mouseup = function(evt) {
+      if (evt.target.nodeName === "ABBR" && !this.is_disabled) {
+        return this.results_reset(evt);
+      }
+    };
+
+    Chosen.prototype.blur_test = function(evt) {
+      if (!this.active_field && this.container.hasClass("chzn-container-active")) {
+        return this.close_field();
+      }
+    };
+
+    Chosen.prototype.close_field = function() {
+      $(document).unbind("click", this.click_test_action);
+      this.active_field = false;
+      this.results_hide();
+      this.container.removeClass("chzn-container-active");
+      this.winnow_results_clear();
+      this.clear_backstroke();
+      this.show_search_field_default();
+      return this.search_field_scale();
+    };
+
+    Chosen.prototype.activate_field = function() {
+      this.container.addClass("chzn-container-active");
+      this.active_field = true;
+      this.search_field.val(this.search_field.val());
+      return this.search_field.focus();
+    };
+
+    Chosen.prototype.test_active_click = function(evt) {
+      if ($(evt.target).parents('#' + this.container_id).length) {
+        return this.active_field = true;
+      } else {
+        return this.close_field();
+      }
+    };
+
+    Chosen.prototype.results_build = function() {
+      var content, data, _i, _len, _ref;
+      this.parsing = true;
+      this.results_data = root.SelectParser.select_to_array(this.form_field);
+      if (this.is_multiple && this.choices > 0) {
+        this.search_choices.find("li.search-choice").remove();
+        this.choices = 0;
+      } else if (!this.is_multiple) {
+        this.selected_item.addClass("chzn-default").find("span").text(this.default_text);
+        if (this.disable_search || this.form_field.options.length <= this.disable_search_threshold) {
+          this.container.addClass("chzn-container-single-nosearch");
+        } else {
+          this.container.removeClass("chzn-container-single-nosearch");
+        }
+      }
+      content = '';
+      _ref = this.results_data;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        data = _ref[_i];
+        if (data.group) {
+          content += this.result_add_group(data);
+        } else if (!data.empty) {
+          content += this.result_add_option(data);
+          if (data.selected && this.is_multiple) {
+            this.choice_build(data);
+          } else if (data.selected && !this.is_multiple) {
+            this.selected_item.removeClass("chzn-default").find("span").text(data.text);
+            if (this.allow_single_deselect) {
+              this.single_deselect_control_build();
+            }
+          }
+        }
+      }
+      this.search_field_disabled();
+      this.show_search_field_default();
+      this.search_field_scale();
+      this.search_results.html(content);
+      return this.parsing = false;
+    };
+
+    Chosen.prototype.result_add_group = function(group) {
+      if (!group.disabled) {
+        group.dom_id = this.container_id + "_g_" + group.array_index;
+        return '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>';
+      } else {
+        return "";
+      }
+    };
+
+    Chosen.prototype.result_do_highlight = function(el) {
+      var high_bottom, high_top, maxHeight, visible_bottom, visible_top;
+      if (el.length) {
+        this.result_clear_highlight();
+        this.result_highlight = el;
+        this.result_highlight.addClass("highlighted");
+        maxHeight = parseInt(this.search_results.css("maxHeight"), 10);
+        visible_top = this.search_results.scrollTop();
+        visible_bottom = maxHeight + visible_top;
+        high_top = this.result_highlight.position().top + this.search_results.scrollTop();
+        high_bottom = high_top + this.result_highlight.outerHeight();
+        if (high_bottom >= visible_bottom) {
+          return this.search_results.scrollTop((high_bottom - maxHeight) > 0 ? high_bottom - maxHeight : 0);
+        } else if (high_top < visible_top) {
+          return this.search_results.scrollTop(high_top);
+        }
+      }
+    };
+
+    Chosen.prototype.result_clear_highlight = function() {
+      if (this.result_highlight) {
+        this.result_highlight.removeClass("highlighted");
+      }
+      return this.result_highlight = null;
+    };
+
+    Chosen.prototype.results_show = function() {
+      if (this.result_single_selected != null) {
+        this.result_do_highlight(this.result_single_selected);
+      } else if (this.is_multiple && this.max_selected_options <= this.choices) {
+        this.form_field_jq.trigger("liszt:maxselected", {
+          chosen: this
+        });
+        return false;
+      }
+      this.container.addClass("chzn-with-drop");
+      this.form_field_jq.trigger("liszt:showing_dropdown", {
+        chosen: this
+      });
+      this.results_showing = true;
+      this.search_field.focus();
+      this.search_field.val(this.search_field.val());
+      return this.winnow_results();
+    };
+
+    Chosen.prototype.results_hide = function() {
+      this.result_clear_highlight();
+      this.container.removeClass("chzn-with-drop");
+      this.form_field_jq.trigger("liszt:hiding_dropdown", {
+        chosen: this
+      });
+      return this.results_showing = false;
+    };
+
+    Chosen.prototype.set_tab_index = function(el) {
+      var ti;
+      if (this.form_field_jq.attr("tabindex")) {
+        ti = this.form_field_jq.attr("tabindex");
+        this.form_field_jq.attr("tabindex", -1);
+        return this.search_field.attr("tabindex", ti);
+      }
+    };
+
+    Chosen.prototype.set_label_behavior = function() {
+      var _this = this;
+      this.form_field_label = this.form_field_jq.parents("label");
+      if (!this.form_field_label.length && this.form_field.id.length) {
+        this.form_field_label = $("label[for=" + this.form_field.id + "]");
+      }
+      if (this.form_field_label.length > 0) {
+        return this.form_field_label.click(function(evt) {
+          if (_this.is_multiple) {
+            return _this.container_mousedown(evt);
+          } else {
+            return _this.activate_field();
+          }
+        });
+      }
+    };
+
+    Chosen.prototype.show_search_field_default = function() {
+      if (this.is_multiple && this.choices < 1 && !this.active_field) {
+        this.search_field.val(this.default_text);
+        return this.search_field.addClass("default");
+      } else {
+        this.search_field.val("");
+        return this.search_field.removeClass("default");
+      }
+    };
+
+    Chosen.prototype.search_results_mouseup = function(evt) {
+      var target;
+      target = $(evt.target).hasClass("active-result") ? $(evt.target) : $(evt.target).parents(".active-result").first();
+      if (target.length) {
+        this.result_highlight = target;
+        this.result_select(evt);
+        return this.search_field.focus();
+      }
+    };
+
+    Chosen.prototype.search_results_mouseover = function(evt) {
+      var target;
+      target = $(evt.target).hasClass("active-result") ? $(evt.target) : $(evt.target).parents(".active-result").first();
+      if (target) {
+        return this.result_do_highlight(target);
+      }
+    };
+
+    Chosen.prototype.search_results_mouseout = function(evt) {
+      if ($(evt.target).hasClass("active-result" || $(evt.target).parents('.active-result').first())) {
+        return this.result_clear_highlight();
+      }
+    };
+
+    Chosen.prototype.choices_click = function(evt) {
+      evt.preventDefault();
+      if (this.active_field && !($(evt.target).hasClass("search-choice" || $(evt.target).parents('.search-choice').first)) && !this.results_showing) {
+        return this.results_show();
+      }
+    };
+
+    Chosen.prototype.choice_build = function(item) {
+      var choice_id, html, link,
+        _this = this;
+      if (this.is_multiple && this.max_selected_options <= this.choices) {
+        this.form_field_jq.trigger("liszt:maxselected", {
+          chosen: this
+        });
+        return false;
+      }
+      choice_id = this.container_id + "_c_" + item.array_index;
+      this.choices += 1;
+      if (item.disabled) {
+        html = '<li class="search-choice search-choice-disabled" id="' + choice_id + '"><span>' + item.html + '</span></li>';
+      } else {
+        html = '<li class="search-choice" id="' + choice_id + '"><span>' + item.html + '</span><a href="javascript:void(0)" class="search-choice-close" rel="' + item.array_index + '"></a></li>';
+      }
+      this.search_container.before(html);
+      link = $('#' + choice_id).find("a").first();
+      return link.click(function(evt) {
+        return _this.choice_destroy_link_click(evt);
+      });
+    };
+
+    Chosen.prototype.choice_destroy_link_click = function(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (!this.is_disabled) {
+        return this.choice_destroy($(evt.target));
+      }
+    };
+
+    Chosen.prototype.choice_destroy = function(link) {
+      if (this.result_deselect(link.attr("rel"))) {
+        this.choices -= 1;
+        this.show_search_field_default();
+        if (this.is_multiple && this.choices > 0 && this.search_field.val().length < 1) {
+          this.results_hide();
+        }
+        link.parents('li').first().remove();
+        return this.search_field_scale();
+      }
+    };
+
+    Chosen.prototype.results_reset = function() {
+      this.form_field.options[0].selected = true;
+      this.selected_item.find("span").text(this.default_text);
+      if (!this.is_multiple) {
+        this.selected_item.addClass("chzn-default");
+      }
+      this.show_search_field_default();
+      this.results_reset_cleanup();
+      this.form_field_jq.trigger("change");
+      if (this.active_field) {
+        return this.results_hide();
+      }
+    };
+
+    Chosen.prototype.results_reset_cleanup = function() {
+      this.current_selectedIndex = this.form_field.selectedIndex;
+      return this.selected_item.find("abbr").remove();
+    };
+
+    Chosen.prototype.result_select = function(evt) {
+      var high, high_id, item, position;
+      if (this.result_highlight) {
+        high = this.result_highlight;
+        high_id = high.attr("id");
+        this.result_clear_highlight();
+        if (this.is_multiple) {
+          this.result_deactivate(high);
+        } else {
+          this.search_results.find(".result-selected").removeClass("result-selected");
+          this.result_single_selected = high;
+          this.selected_item.removeClass("chzn-default");
+        }
+        high.addClass("result-selected");
+        position = high_id.substr(high_id.lastIndexOf("_") + 1);
+        item = this.results_data[position];
+        item.selected = true;
+        this.form_field.options[item.options_index].selected = true;
+        if (this.is_multiple) {
+          this.choice_build(item);
+        } else {
+          this.selected_item.find("span").first().text(item.text);
+          if (this.allow_single_deselect) {
+            this.single_deselect_control_build();
+          }
+        }
+        if (!((evt.metaKey || evt.ctrlKey) && this.is_multiple)) {
+          this.results_hide();
+        }
+        this.search_field.val("");
+        if (this.is_multiple || this.form_field.selectedIndex !== this.current_selectedIndex) {
+          this.form_field_jq.trigger("change", {
+            'selected': this.form_field.options[item.options_index].value
+          });
+        }
+        this.current_selectedIndex = this.form_field.selectedIndex;
+        return this.search_field_scale();
+      }
+    };
+
+    Chosen.prototype.result_activate = function(el) {
+      return el.addClass("active-result");
+    };
+
+    Chosen.prototype.result_deactivate = function(el) {
+      return el.removeClass("active-result");
+    };
+
+    Chosen.prototype.result_deselect = function(pos) {
+      var result, result_data;
+      result_data = this.results_data[pos];
+      if (!this.form_field.options[result_data.options_index].disabled) {
+        result_data.selected = false;
+        this.form_field.options[result_data.options_index].selected = false;
+        result = $("#" + this.container_id + "_o_" + pos);
+        result.removeClass("result-selected").addClass("active-result").show();
+        this.result_clear_highlight();
+        this.winnow_results();
+        this.form_field_jq.trigger("change", {
+          deselected: this.form_field.options[result_data.options_index].value
+        });
+        this.search_field_scale();
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    Chosen.prototype.single_deselect_control_build = function() {
+      if (this.allow_single_deselect && this.selected_item.find("abbr").length < 1) {
+        return this.selected_item.find("span").first().after("<abbr class=\"search-choice-close\"></abbr>");
+      }
+    };
+
+    Chosen.prototype.winnow_results = function() {
+      var found, option, part, parts, regex, regexAnchor, result, result_id, results, searchText, startpos, text, zregex, _i, _j, _len, _len1, _ref;
+      this.no_results_clear();
+      results = 0;
+      searchText = this.search_field.val() === this.default_text ? "" : $('<div/>').text($.trim(this.search_field.val())).html();
+      regexAnchor = this.search_contains ? "" : "^";
+      regex = new RegExp(regexAnchor + searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i');
+      zregex = new RegExp(searchText.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'i');
+      _ref = this.results_data;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        option = _ref[_i];
+        if (!option.disabled && !option.empty) {
+          if (option.group) {
+            $('#' + option.dom_id).css('display', 'none');
+          } else if (!(this.is_multiple && option.selected)) {
+            found = false;
+            result_id = option.dom_id;
+            result = $("#" + result_id);
+            if (regex.test(option.html)) {
+              found = true;
+              results += 1;
+            } else if (this.enable_split_word_search && (option.html.indexOf(" ") >= 0 || option.html.indexOf("[") === 0)) {
+              parts = option.html.replace(/\[|\]/g, "").split(" ");
+              if (parts.length) {
+                for (_j = 0, _len1 = parts.length; _j < _len1; _j++) {
+                  part = parts[_j];
+                  if (regex.test(part)) {
+                    found = true;
+                    results += 1;
+                  }
+                }
+              }
+            }
+            if (found) {
+              if (searchText.length) {
+                startpos = option.html.search(zregex);
+                text = option.html.substr(0, startpos + searchText.length) + '</em>' + option.html.substr(startpos + searchText.length);
+                text = text.substr(0, startpos) + '<em>' + text.substr(startpos);
+              } else {
+                text = option.html;
+              }
+              result.html(text);
+              this.result_activate(result);
+              if (option.group_array_index != null) {
+                $("#" + this.results_data[option.group_array_index].dom_id).css('display', 'list-item');
+              }
+            } else {
+              if (this.result_highlight && result_id === this.result_highlight.attr('id')) {
+                this.result_clear_highlight();
+              }
+              this.result_deactivate(result);
+            }
+          }
+        }
+      }
+      if (results < 1 && searchText.length) {
+        return this.no_results(searchText);
+      } else {
+        return this.winnow_results_set_highlight();
+      }
+    };
+
+    Chosen.prototype.winnow_results_clear = function() {
+      var li, lis, _i, _len, _results;
+      this.search_field.val("");
+      lis = this.search_results.find("li");
+      _results = [];
+      for (_i = 0, _len = lis.length; _i < _len; _i++) {
+        li = lis[_i];
+        li = $(li);
+        if (li.hasClass("group-result")) {
+          _results.push(li.css('display', 'auto'));
+        } else if (!this.is_multiple || !li.hasClass("result-selected")) {
+          _results.push(this.result_activate(li));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    Chosen.prototype.winnow_results_set_highlight = function() {
+      var do_high, selected_results;
+      if (!this.result_highlight) {
+        selected_results = !this.is_multiple ? this.search_results.find(".result-selected.active-result") : [];
+        do_high = selected_results.length ? selected_results.first() : this.search_results.find(".active-result").first();
+        if (do_high != null) {
+          return this.result_do_highlight(do_high);
+        }
+      }
+    };
+
+    Chosen.prototype.no_results = function(terms) {
+      var no_results_html;
+      no_results_html = $('<li class="no-results">' + this.results_none_found + ' "<span></span>"</li>');
+      no_results_html.find("span").first().html(terms);
+      return this.search_results.append(no_results_html);
+    };
+
+    Chosen.prototype.no_results_clear = function() {
+      return this.search_results.find(".no-results").remove();
+    };
+
+    Chosen.prototype.keydown_arrow = function() {
+      var first_active, next_sib;
+      if (!this.result_highlight) {
+        first_active = this.search_results.find("li.active-result").first();
+        if (first_active) {
+          this.result_do_highlight($(first_active));
+        }
+      } else if (this.results_showing) {
+        next_sib = this.result_highlight.nextAll("li.active-result").first();
+        if (next_sib) {
+          this.result_do_highlight(next_sib);
+        }
+      }
+      if (!this.results_showing) {
+        return this.results_show();
+      }
+    };
+
+    Chosen.prototype.keyup_arrow = function() {
+      var prev_sibs;
+      if (!this.results_showing && !this.is_multiple) {
+        return this.results_show();
+      } else if (this.result_highlight) {
+        prev_sibs = this.result_highlight.prevAll("li.active-result");
+        if (prev_sibs.length) {
+          return this.result_do_highlight(prev_sibs.first());
+        } else {
+          if (this.choices > 0) {
+            this.results_hide();
+          }
+          return this.result_clear_highlight();
+        }
+      }
+    };
+
+    Chosen.prototype.keydown_backstroke = function() {
+      var next_available_destroy;
+      if (this.pending_backstroke) {
+        this.choice_destroy(this.pending_backstroke.find("a").first());
+        return this.clear_backstroke();
+      } else {
+        next_available_destroy = this.search_container.siblings("li.search-choice").last();
+        if (next_available_destroy.length && !next_available_destroy.hasClass("search-choice-disabled")) {
+          this.pending_backstroke = next_available_destroy;
+          if (this.single_backstroke_delete) {
+            return this.keydown_backstroke();
+          } else {
+            return this.pending_backstroke.addClass("search-choice-focus");
+          }
+        }
+      }
+    };
+
+    Chosen.prototype.clear_backstroke = function() {
+      if (this.pending_backstroke) {
+        this.pending_backstroke.removeClass("search-choice-focus");
+      }
+      return this.pending_backstroke = null;
+    };
+
+    Chosen.prototype.keydown_checker = function(evt) {
+      var stroke, _ref;
+      stroke = (_ref = evt.which) != null ? _ref : evt.keyCode;
+      this.search_field_scale();
+      if (stroke !== 8 && this.pending_backstroke) {
+        this.clear_backstroke();
+      }
+      switch (stroke) {
+        case 8:
+          this.backstroke_length = this.search_field.val().length;
+          break;
+        case 9:
+          if (this.results_showing && !this.is_multiple) {
+            this.result_select(evt);
+          }
+          this.mouse_on_container = false;
+          break;
+        case 13:
+          evt.preventDefault();
+          break;
+        case 38:
+          evt.preventDefault();
+          this.keyup_arrow();
+          break;
+        case 40:
+          this.keydown_arrow();
+          break;
+      }
+    };
+
+    Chosen.prototype.search_field_scale = function() {
+      var div, h, style, style_block, styles, w, _i, _len;
+      if (this.is_multiple) {
+        h = 0;
+        w = 0;
+        style_block = "position:absolute; left: -1000px; top: -1000px; display:none;";
+        styles = ['font-size', 'font-style', 'font-weight', 'font-family', 'line-height', 'text-transform', 'letter-spacing'];
+        for (_i = 0, _len = styles.length; _i < _len; _i++) {
+          style = styles[_i];
+          style_block += style + ":" + this.search_field.css(style) + ";";
+        }
+        div = $('<div />', {
+          'style': style_block
+        });
+        div.text(this.search_field.val());
+        $('body').append(div);
+        w = div.width() + 25;
+        div.remove();
+        if (!this.f_width) {
+          this.f_width = this.container.outerWidth();
+        }
+        if (w > this.f_width - 10) {
+          w = this.f_width - 10;
+        }
+        return this.search_field.css({
+          'width': w + 'px'
+        });
+      }
+    };
+
+    Chosen.prototype.generate_random_id = function() {
+      var string;
+      string = "sel" + this.generate_random_char() + this.generate_random_char() + this.generate_random_char();
+      while ($("#" + string).length > 0) {
+        string += this.generate_random_char();
+      }
+      return string;
+    };
+
+    return Chosen;
+
+  })(AbstractChosen);
+
+  root.Chosen = Chosen;
+
+  get_side_border_padding = function(elmt) {
+    var side_border_padding;
+    return side_border_padding = elmt.outerWidth() - elmt.width();
+  };
+
+  root.get_side_border_padding = get_side_border_padding;
+
+}).call(this);
+;
+/*!
+ * jQuery replaceText - v1.1 - 11/21/2009
+ * http://benalman.com/projects/jquery-replacetext-plugin/
+ *
+ * Copyright (c) 2009 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
+
+// Script: jQuery replaceText: String replace for your jQueries!
+//
+// *Version: 1.1, Last updated: 11/21/2009*
+//
+// Project Home - http://benalman.com/projects/jquery-replacetext-plugin/
+// GitHub       - http://github.com/cowboy/jquery-replacetext/
+// Source       - http://github.com/cowboy/jquery-replacetext/raw/master/jquery.ba-replacetext.js
+// (Minified)   - http://github.com/cowboy/jquery-replacetext/raw/master/jquery.ba-replacetext.min.js (0.5kb)
+//
+// About: License
+//
+// Copyright (c) 2009 "Cowboy" Ben Alman,
+// Dual licensed under the MIT and GPL licenses.
+// http://benalman.com/about/license/
+//
+// About: Examples
+//
+// This working example, complete with fully commented code, illustrates one way
+// in which this plugin can be used.
+//
+// replaceText - http://benalman.com/code/projects/jquery-replacetext/examples/replacetext/
+//
+// About: Support and Testing
+//
+// Information about what version or versions of jQuery this plugin has been
+// tested with, and what browsers it has been tested in.
+//
+// jQuery Versions - 1.3.2, 1.4.1
+// Browsers Tested - Internet Explorer 6-8, Firefox 2-3.6, Safari 3-4, Chrome, Opera 9.6-10.1.
+//
+// About: Release History
+//
+// 1.1 - (11/21/2009) Simplified the code and API substantially.
+// 1.0 - (11/21/2009) Initial release
+
+(function($){
+  '$:nomunge'; // Used by YUI compressor.
+
+  // Method: jQuery.fn.replaceText
+  //
+  // Replace text in specified elements. Note that only text content will be
+  // modified, leaving all tags and attributes untouched. The new text can be
+  // either text or HTML.
+  //
+  // Uses the String prototype replace method, full documentation on that method
+  // can be found here:
+  //
+  // https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Objects/String/Replace
+  //
+  // Usage:
+  //
+  // > jQuery('selector').replaceText( search, replace [, text_only ] );
+  //
+  // Arguments:
+  //
+  //  search - (RegExp|String) A RegExp object or substring to be replaced.
+  //    Because the String prototype replace method is used internally, this
+  //    argument should be specified accordingly.
+  //  replace - (String|Function) The String that replaces the substring received
+  //    from the search argument, or a function to be invoked to create the new
+  //    substring. Because the String prototype replace method is used internally,
+  //    this argument should be specified accordingly.
+  //  text_only - (Boolean) If true, any HTML will be rendered as text. Defaults
+  //    to false.
+  //
+  // Returns:
+  //
+  //  (jQuery) The initial jQuery collection of elements.
+
+  $.fn.replaceText = function( search, replace, text_only ) {
+    return this.each(function(){
+      var node = this.firstChild,
+        val,
+        new_val,
+
+        // Elements to be removed at the end.
+        remove = [];
+
+      // Only continue if firstChild exists.
+      if ( node ) {
+
+        // Loop over all childNodes.
+        do {
+
+          // Only process text nodes.
+          if ( node.nodeType === 3 ) {
+
+            // The original node value.
+            val = node.nodeValue;
+
+            // The new value.
+            new_val = val.replace( search, replace );
+
+            // Only replace text if the new value is actually different!
+            if ( new_val !== val ) {
+
+              if ( !text_only && /</.test( new_val ) ) {
+                // The new value contains HTML, set it in a slower but far more
+                // robust way.
+                $(node).before( new_val );
+
+                // Don't remove the node yet, or the loop will lose its place.
+                remove.push( node );
+              } else {
+                // The new value contains no HTML, so it can be set in this
+                // very fast, simple way.
+                node.nodeValue = new_val;
+              }
+            }
+          }
+
+        } while ( node = node.nextSibling );
+      }
+
+      // Time to remove those elements!
+      remove.length && $(remove).remove();
+    });
+  };
+
+})(jQuery);
+;
+(function ($) {
+
+Drupal.behaviors.facetapi = {
+  attach: function(context, settings) {
+    // Iterates over facet settings, applies functionality like the "Show more"
+    // links for block realm facets.
+    // @todo We need some sort of JS API so we don't have to make decisions
+    // based on the realm.
+    if (settings.facetapi) {
+      for (var index in settings.facetapi.facets) {
+        if (null != settings.facetapi.facets[index].makeCheckboxes) {
+          Drupal.facetapi.makeCheckboxes(settings.facetapi.facets[index].id);
+        }
+        if (null != settings.facetapi.facets[index].limit) {
+          // Applies soft limit to the list.
+          Drupal.facetapi.applyLimit(settings.facetapi.facets[index]);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Class containing functionality for Facet API.
+ */
+Drupal.facetapi = {}
+
+/**
+ * Applies the soft limit to facets in the block realm.
+ */
+Drupal.facetapi.applyLimit = function(settings) {
+  if (settings.limit > 0 && !$('ul#' + settings.id).hasClass('facetapi-processed')) {
+    // Only process this code once per page load.
+    $('ul#' + settings.id).addClass('facetapi-processed');
+
+    // Ensures our limit is zero-based, hides facets over the limit.
+    var limit = settings.limit - 1;
+    $('ul#' + settings.id).find('li:gt(' + limit + ')').hide();
+
+    // Adds "Show more" / "Show fewer" links as appropriate.
+    $('ul#' + settings.id).filter(function() {
+      return $(this).find('li').length > settings.limit;
+    }).each(function() {
+      $('<a href="#" class="facetapi-limit-link"></a>').text(Drupal.t(settings.showMoreText)).click(function() {
+        if ($(this).siblings().find('li:hidden').length > 0) {
+          $(this).siblings().find('li:gt(' + limit + ')').slideDown();
+          $(this).addClass('open').text(Drupal.t(settings.showFewerText));
+        }
+        else {
+          $(this).siblings().find('li:gt(' + limit + ')').slideUp();
+          $(this).removeClass('open').text(Drupal.t(settings.showMoreText));
+        }
+        return false;
+      }).insertAfter($(this));
+    });
+  }
+}
+
+/**
+ * Constructor for the facetapi redirect class.
+ */
+Drupal.facetapi.Redirect = function(href) {
+  this.href = href;
+}
+
+/**
+ * Method to redirect to the stored href.
+ */
+Drupal.facetapi.Redirect.prototype.gotoHref = function() {
+  window.location.href = this.href;
+}
+
+/**
+ * Turns all facet links into checkboxes.
+ * Ensures the facet is disabled if a link is clicked.
+ */
+Drupal.facetapi.makeCheckboxes = function(facet_id) {
+  var $facet = $('#' + facet_id),
+      $links = $('a.facetapi-checkbox', $facet);
+
+  // Find all checkbox facet links and give them a checkbox.
+  $links.once('facetapi-makeCheckbox').each(Drupal.facetapi.makeCheckbox);
+  $links.once('facetapi-disableClick').click(function (e) {
+    Drupal.facetapi.disableFacet($facet);
+  });
+}
+
+/**
+ * Disable all facet links and checkboxes in the facet and apply a 'disabled'
+ * class.
+ */
+Drupal.facetapi.disableFacet = function ($facet) {
+  $facet.addClass('facetapi-disabled');
+  $('a.facetapi-checkbox').click(Drupal.facetapi.preventDefault);
+  $('input.facetapi-checkbox', $facet).attr('disabled', true);
+}
+
+/**
+ * Event listener for easy prevention of event propagation.
+ */
+Drupal.facetapi.preventDefault = function (e) {
+  e.preventDefault();
+}
+
+/**
+ * Replace an unclick link with a checked checkbox.
+ */
+Drupal.facetapi.makeCheckbox = function() {
+  var $link = $(this),
+      active = $link.hasClass('facetapi-active');
+
+  if (!active && !$link.hasClass('facetapi-inactive')) {
+    // Not a facet link.
+    return;
+  }
+
+  // Derive an ID and label for the checkbox based on the associated link.
+  // The label is required for accessibility, but it duplicates information
+  // in the link itself, so it should only be shown to screen reader users.
+  var id = this.id + '--checkbox',
+      description = $link.find('.element-invisible').html(),
+      label = $('<label class="element-invisible" for="' + id + '">' + description + '</label>'),
+      checkbox = $('<input type="checkbox" class="facetapi-checkbox" id="' + id + '" />'),
+      // Get the href of the link that is this DOM object.
+      href = $link.attr('href'),
+      redirect = new Drupal.facetapi.Redirect(href);
+
+  checkbox.click(function (e) {
+    Drupal.facetapi.disableFacet($link.parents('ul.facetapi-facetapi-checkbox-links'));
+    redirect.gotoHref();
+  });
+
+  if (active) {
+    checkbox.attr('checked', true);
+    // Add the checkbox and label, hide the link.
+    $link.before(label).before(checkbox).hide();
+  }
+  else {
+    $link.before(label).before(checkbox);
+  }
+}
+
+})(jQuery);
+;
+(function ($) {
+    Drupal.behaviors.colorboxNode = {
+        // Lets find our class name and change our URL to
+        // our defined menu path to open in a colorbox modal.
+        attach: function (context, settings) {
+            // Make sure colorbox exists.
+            if (!$.isFunction($.colorbox) || typeof settings.colorbox === 'undefined') {
+                return;
+            }
+
+            // Mobile detection extracted from the colorbox module.
+            // If the mobile setting is turned on, it will turn off the colorbox modal for mobile devices.
+            if (settings.colorbox.mobiledetect && window.matchMedia) {
+                // Disable Colorbox for small screens.
+                var mq = window.matchMedia("(max-device-width: " + settings.colorbox.mobiledevicewidth + ")");
+                if (mq.matches) {
+                    return;
+                }
+            }
+
+            $('.colorbox-node', context).once('init-colorbox-node-processed', function () {
+                $(this).colorboxNode({'launch': false});
+            });
+
+            // When using contextual links and clicking from within the colorbox
+            // we need to close down colorbox when opening the built in overlay.
+            $('ul.contextual-links a', context).once('colorboxNodeContextual').click(function () {
+                $.colorbox.close();
+            });
+        }
+    };
+
+    // Bind our colorbox node functionality to an anchor
+    $.fn.colorboxNode = function (options) {
+        var settings = {
+            'launch': true,
+            'width': Drupal.settings.colorbox_node.width,
+            'height': Drupal.settings.colorbox_node.height
+        };
+
+        $.extend(settings, options);
+
+        var href = $(this).attr('data-href');
+        if (typeof href == 'undefined' || href == false) {
+            href = $(this).attr('href');
+        }
+        // Create an element so we can parse our a URL no matter if its internal or external.
+        var parse = document.createElement('a');
+        parse.href = href;
+
+        if(!href) {
+            alert(Drupal.t('No url found on element'));
+        }
+
+        // Lets add our colorbox link after the base path if necessary.
+        var base_path = Drupal.settings.basePath;
+        var path_prefix = Drupal.settings.pathPrefix;
+        var pathname = parse.pathname;
+
+        // Lets check to see if the pathname has a forward slash.
+        // This problem happens in IE7/IE8
+        if (pathname.charAt(0) != '/') {
+            pathname = '/' + parse.pathname;
+        }
+
+        // If clean URL's are not turned on, lets check for that.
+        var url = $.getParameterByName('q', href);
+        if (base_path != '/') {
+            if (url != '') {
+                var link = pathname.replace(base_path, base_path + parse.search.replace('?q=', '?q=/' + path_prefix + 'colorbox/'));
+            } else {
+                var link = pathname.replace(base_path, base_path + path_prefix + 'colorbox/') + parse.search;
+            }
+        } else {
+            if (url != '') {
+                var link = base_path + parse.search.replace('?q=', '?q=/' + path_prefix + 'colorbox/');
+            } else {
+                var link = base_path + path_prefix + 'colorbox' + pathname + parse.search;
+            }
+        }
+
+        // Bind Ajax behaviors to all items showing the class.
+        var element_settings = {};
+
+        // This removes any loading/progress bar on the clicked link
+        // and displays the colorbox loading screen instead.
+        element_settings.progress = { 'type': 'none' };
+        // For anchor tags, these will go to the target of the anchor rather
+        // than the usual location.
+        if (href) {
+            element_settings.url = link;
+            element_settings.event = 'click';
+        }
+
+        $(this).click(function () {
+            var $this = $(this).clone();
+
+            // Clear out the rel to prevent any confusion if not using the gallery class.
+            if(!$this.hasClass('colorbox-node-gallery')) {
+                $this.attr('rel', '');
+            }
+
+            // Lets extract our width and height giving priority to the data attributes.
+            var innerWidth = $this.data('inner-width');
+            var innerHeight = $this.data('inner-height');
+            if (typeof innerWidth != 'undefined' && typeof innerHeight != 'undefined') {
+                var params = $.urlDataParams(innerWidth, innerHeight);
+            } else {
+                var params = $.urlParams(href);
+            }
+
+            // If we did not find a width or height, lets use the default.
+            if (params.innerHeight == undefined) params.innerHeight = settings.height;
+            if (params.innerWidth == undefined) params.innerWidth = settings.width;
+
+            params.html = '<div id="colorboxNodeLoading"></div>';
+            params.onComplete = function () {
+                $this.colorboxNodeGroup();
+            }
+            params.open = true;
+
+            // Launch our colorbox with the provided settings
+            $this.colorbox($.extend({}, Drupal.settings.colorbox, params));
+        });
+
+        // Log our click handler to our ajax object
+        var base = $(this).attr('id');
+        Drupal.ajax[base] = new Drupal.ajax(base, this, element_settings);
+
+        // Default to auto click for manual call to this function.
+        if (settings.launch) {
+            Drupal.ajax[base].eventResponse(this, 'click');
+            $(this).click();
+        }
+    }
+
+    // Allow for grouping on links to showcase a gallery with left/right arrows.
+    // This function will find the next index of each link on the page by the rel
+    // and manually force a click on the link to call that AJAX and update the
+    // modal window.
+    $.fn.colorboxNodeGroup = function () {
+        // Lets do setup our gallery type of functions.
+        var $this = $(this);
+        var rel = $this.attr('rel');
+        if(rel && $this.hasClass('colorbox-node-gallery')) {
+            if ($('a.colorbox-node-gallery[rel="' + rel + '"]:not("#colorbox a[rel="' + rel + '"]")').length > 1) {
+                $related = $('a.colorbox-node-gallery[rel="' + rel + '"]:not("#colorbox a[rel="' + rel + '"]")');
+
+                // filter $related array by href, to have mutliple colorbox links to the same target
+                // appear as one item in the gallery only
+                var $related_unique = [];
+                $related.each(function() {
+                    $.findHref($related_unique, this.href);
+                    if (!$.findHref($related_unique, this.href).length) {
+                        $related_unique.push(this);
+                    }
+                });
+                // we have to get the actual used element from the filtered list in order to get it's relative index
+                var current = $.findHref($related_unique, $this.get(0).href);
+                $related = $($related_unique);
+                var idx = $related.index($(current));
+                var tot = $related.length;
+
+                // Show our gallery buttons
+                $('#cboxPrevious, #cboxNext').show();
+                $.colorbox.next = function () {
+                    index = getIndex(1);
+                    $related[index].click();
+                };
+                $.colorbox.prev = function () {
+                    index = getIndex(-1);
+                    $related[index].click();
+                };
+
+                // Setup our current HTML
+                $('#cboxCurrent').html(Drupal.settings.colorbox.current.replace('{current}', idx + 1).replace('{total}', tot)).show();
+                $('#cboxNext').html(Drupal.settings.colorbox.next).show();
+                $('#cboxPrevious').html(Drupal.settings.colorbox.previous).show();
+
+                var prefix = 'colorbox';
+                // Remove Bindings and re-add
+                // @TODO: There must be a better way?  If we don't remove it causes a memory to be exhausted.
+                $(document).unbind('keydown.' + prefix);
+
+                // Add Key Bindings
+                $(document).bind('keydown.' + prefix, function (e) {
+                    var key = e.keyCode;
+                    if ($related[1] && !e.altKey) {
+                        if (key === 37) {
+                            e.preventDefault();
+                            $.colorbox.prev();
+                        } else if (key === 39) {
+                            e.preventDefault();
+                            $.colorbox.next();
+                        }
+                    }
+                });
+            }
+
+            function getIndex(increment) {
+                var max = $related.length;
+                var newIndex = (idx + increment) % max;
+                return (newIndex < 0) ? max + newIndex : newIndex;
+            }
+
+        }
+    }
+
+    // Find a colorbox link by href in an array
+    $.findHref = function(items, href) {
+        return $.grep(items, function(n, i){
+            return n.href == href;
+        });
+    };
+
+    // Utility function to parse out our width/height from our url params
+    $.urlParams = function (url) {
+        var p = {},
+            e,
+            a = /\+/g,  // Regex for replacing addition symbol with a space
+            r = /([^&=]+)=?([^&]*)/g,
+            d = function (s) {
+                return decodeURIComponent(s.replace(a, ' '));
+            },
+            q = url.split('?');
+        while (e = r.exec(q[1])) {
+            e[1] = d(e[1]);
+            e[2] = d(e[2]);
+            switch (e[2].toLowerCase()) {
+                case 'true':
+                case 'yes':
+                    e[2] = true;
+                    break;
+                case 'false':
+                case 'no':
+                    e[2] = false;
+                    break;
+            }
+            if (e[1] == 'width') {
+                e[1] = 'innerWidth';
+            }
+            if (e[1] == 'height') {
+                e[1] = 'innerHeight';
+            }
+            p[e[1]] = e[2];
+        }
+        return p;
+    };
+
+    // Utility function to return our data attributes for width/height
+    $.urlDataParams = function (innerWidth, innerHeight) {
+        return {'innerWidth':innerWidth,'innerHeight':innerHeight};
+    };
+
+    $.getParameterByName = function(name, href) {
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexString = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexString);
+        var found = regex.exec(href);
+        if(found == null)
+            return "";
+        else
+            return decodeURIComponent(found[1].replace(/\+/g, " "));
+    }
+
+})(jQuery);
+;

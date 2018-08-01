@@ -1,0 +1,591 @@
+/* hidden internal page*/
+
+/* Varaibles*/
+$color_white: #fff;
+$color_black: #000;
+$color_brown: #b6985a;
+$color_grey: #666;
+$font-20: 20px;
+$font-18: 18px;
+$font-universe-bold: 'universltstd-bold';
+$font-universe-light: 'universltstd-light';
+
+/* variables for media query*/
+$width1172:                1172px;
+$width1100:                1100px;
+$width1025:                1025px;
+$width1024-ipadl:          1024px;
+$width991-ipadl:           991px;
+$width768-ipadp:           768px;
+$width767-mobile:          767px;
+$width667-mobile:          667px;
+$width666-mobile:          666px;
+$width479-mobilesmall:     479px;
+$width374-mobilesmallp:    374px;
+
+
+h3 {
+    margin: 0;
+}
+a:hover {
+    text-decoration: none;
+}
+/* Font face*/
+@font-face {
+    font-family: 'universltstd-bold';
+    src: url('../fonts/universltstd-bold-598412d236533.eot');
+    src: local('☺'), url('../fonts/universltstd-bold-598412d236533.woff') format('woff'),
+         url('../fonts/universltstd-bold-598412d236533.ttf') format('truetype'),
+         url('../fonts/universltstd-bold-598412d236533.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+	font-family: 'universltstd-light';
+	src: url('../fonts/univers-lt-std-45-light-5984549a39169.eot');
+	src: local('☺'), url('fonts/univers-lt-std-45-light-5984549a39169.woff') format('woff'),
+             url('../fonts/univers-lt-std-45-light-5984549a39169.ttf') format('truetype'),
+             url('../fonts/univers-lt-std-45-light-5984549a39169.svg') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.node-type-akdn-internal-news-page {
+    ul.tabs.primary {
+        margin-top: 50px;
+    }
+}
+
+#internal-page {
+    max-width: 1172px;
+    margin: 0 auto;
+    @media only screen and (max-width: $width1172) {
+        width: 100%;
+    }
+    @media only screen and (max-width: $width991-ipadl) {
+        position: relative;
+    }
+
+    h1 {
+        margin: 0 0 20px;
+
+        a {
+            width: 120px;
+            height: 55px;
+            background: url(../images/akdn-logo.png) 0 0 no-repeat;
+            display: block;
+            font-size: 0;
+        }
+    }
+    /* Header*/
+    .heading-text-date {
+        float: left;
+        clear: left;
+        .sub_title_date {
+            margin-top: 5px;
+            color: $color_grey;
+            font-size: $font-20;
+            line-height: 22px;
+            @media only screen and (max-width: $width479-mobilesmall) {
+              font-size: 12px;
+            }
+            h3 {
+                display: inline-block;
+                vertical-align: top;
+                margin: 0 10px 0 0;
+                padding: 0;
+                font-size: $font-20;
+                line-height: 22px;
+                text-transform: uppercase;
+                @media only screen and (max-width: $width479-mobilesmall) {
+                  font-size: 26px;
+                  font-weight: bold;
+                  position: relative;
+                  &:after {
+                    content: "";
+                    height: 16px;
+                    width: 5px;
+                    background: white;
+                    display: block;
+                    position: absolute;
+                    top: 4px;
+                    right: -14px;
+                  }
+                }
+            }
+            span {
+                padding-left: 10px;
+                display: inline-block;
+                vertical-align: top;
+                @media only screen and (max-width: $width479-mobilesmall) {
+                  padding-left: 0;
+                  padding-top: 5px;
+                  padding-bottom: 5px;
+                }
+            }
+        }
+    }
+
+    .search-block {
+        float: right;
+        clear: right;
+        background: #eaeaea;
+        width: 300px;
+        @media only screen and (max-width: $width991-ipadl) {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+        @media only screen and (max-width: $width479-mobilesmall) {
+            width: 200px;
+        }
+        @media only screen and (max-width: $width479-mobilesmall) {
+            position: static;
+            width: 100%;
+        }
+        form {
+            padding: 5px 10px;
+        }
+        .form-item-search {
+            display: inline-block;
+            vertical-align: top;
+            width: 85%;
+            margin: 0;
+            input[type=text] {
+              background: none !important;
+              border: 0 !important;
+              box-shadow: none !important;
+              padding: 0 !important;
+              font-size: 16px;
+              ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+                line-height: inherit !important;
+                text-align: left !important;
+              }
+              ::-moz-placeholder { /* Firefox 19+ */
+                line-height: inherit !important;
+                text-align: left !important;
+              }
+              :-ms-input-placeholder { /* IE 10+ */
+                line-height: inherit !important;
+                text-align: left !important;
+              }
+              :-moz-placeholder { /* Firefox 18- */
+                line-height: inherit !important;
+                text-align: left !important;
+              }
+           }
+        }
+        input[type=submit] {
+          display: inline-block;
+          background: image-url("magnifier.png") no-repeat;
+          font-size: 0;
+          border: 0 ;
+          width: 15px;
+          height: 15px;
+          float: right;
+          margin: 5px 0;
+        }
+    }
+
+    /* Annoucement Config Blocks*/
+    .announcement-block {
+        margin: 25px 0;
+        padding: 30px 45px;
+        background: #b5995a;
+        @media only screen and (max-width: $width767-mobile) {
+          padding: 15px;
+        }
+        .announcement-image {
+            width: 340px;
+            float: left;
+            margin-right: 45px;
+            @media only screen and (max-width: $width991-ipadl) {
+                width: 30%;
+            }
+            @media only screen and (max-width: $width767-mobile) {
+                margin-right: 15px;
+            }
+            @media only screen and (min-width: $width479-mobilesmall) and (max-width: $width666-mobile) {
+              width: 100%;
+              margin-right: 0;
+            }
+            @media only screen and (max-width: $width479-mobilesmall) {
+                width: 100%;
+            }
+         }
+        .announcement-content {
+            float: left;
+            color: $color_white;
+            font: 24px/26px "Arial, sans-serif";
+            width: 100%;
+            h3 {
+                font: 45px "Times New Roman, sans-Serif";
+                text-transform: uppercase;
+                @media only screen and (max-width: $width767-mobile) {
+                  font-size: 35px;
+                }
+                @media only screen and (max-width: $width666-mobile) {
+                    font-size: 30px;
+                }
+            }
+            h4 {
+                font: bold 24px/32px "Arial, sans-serif";
+                margin: 0;
+                @media only screen and (max-width: $width666-mobile) {
+                    font-size: 20px;
+                    line-height: 26px;
+                }
+            }
+            p {
+                @media only screen and (max-width: $width666-mobile) {
+                    font-size: 20px;
+                    line-height: 22px;
+                }
+            }
+            a {
+                display: block;
+                color: $color_white;
+                text-transform: uppercase;
+                margin-top: 3px;
+            }
+        }
+    }
+
+    .akdn_social_media_content {
+        margin: 25px 0 0;
+        border-bottom: 1px solid #b6985a;
+        padding: 0 0 25px 0;
+        h3 {
+            color: $color_brown;
+            font: 45px "Times New Roman, sans-Serif";
+            @media only screen and (max-width: $width991-ipadl) {
+              font-size: 24px;
+            }
+        }
+        .social-media-block {
+            margin-top: $font-20;
+            display: flex;
+            display: -webkit-flex;
+            justify-content: flex-start;
+            font-family: 'universltstd-bold';
+            @media only screen and (max-width: $width767-mobile) {
+              display: block;
+            }
+            .view-facebook-feeds {
+                width: 33%;
+                border-right: 1px solid $color_brown;
+                padding-right: 30px;
+                margin-right: 30px;
+                font-size: $font-20;
+                @media only screen and (max-width: $width991-ipadl) {
+                    padding-right: 15px;
+                    margin-right: 15px;
+                }
+                @media only screen and (max-width: $width767-mobile) {
+                    width: 100%;
+                    margin-right: 0;
+                    padding: 0 0 20px;
+                    border-right: 0;
+                    border-bottom: 1px solid $color_brown;
+                }
+                &:last-child {
+                    border-right: 0;
+                    padding-right: 0;
+                    margin-right: 0;
+                    width: 30.5%;
+                    @media only screen and (max-width: $width767-mobile) {
+                        width: 100%;
+                        border-bottom: 0;
+                    }
+                }
+                .grid-social-block_picture {
+                    img {
+                        width: 340px;
+                        @media only screen and (max-width: $width1172) {
+                            width: 100%;
+                        }
+                    }
+                }
+            }
+        }
+      .grid-social-block_title {
+         padding: 0;
+         margin: 10px 0 0;
+        .title {
+           padding: 0;
+           font-family: 'universltstd-bold';
+           font-size: $font-18;
+        }
+        .social-icon-image {
+           position: static;
+           left: 0;
+           float: right;
+        }
+      }
+       .grid-social-block_date {
+           padding: 0;
+           margin: 10px 0;
+           font-size: $font-18;
+           font-family: $font-universe-light;
+       }
+       .grid-social-block_body {
+           padding: 0;
+           font-size: $font-18;
+           line-height: 24px;
+           font-family: $font-universe-light;
+       }
+       .grid-social-block_medialink {
+           display: none;
+       }
+       .view-on-social-media {
+           a {
+               color: $color_black;
+               font-family: $font-universe-bold;
+               text-transform: uppercase;
+               font-size: 16px;
+           }
+       }
+    }
+    /* news block*/
+    .news-block {
+        margin-top: 20px;
+        .view-content {
+            display: flex;
+            display: -webkit-flex;
+            justify-content: flex-start;
+            @media only screen and (max-width: $width767-mobile) {
+              display: block;
+            }
+            .news-block-content {
+                width: 33%;
+                border-right: 1px solid $color_brown;
+                padding-right: 30px;
+                margin-right: 30px;
+                font-size: $font-20;
+                @media only screen and (max-width: $width991-ipadl) {
+                    padding-right: 15px;
+                    margin-right: 15px;
+                }
+                @media only screen and (max-width: $width767-mobile) {
+                    width: 100%;
+                    margin: 0 0 20px;
+                    padding: 0 0 20px;
+                    border-right: 0;
+                    border-bottom: 1px solid $color_brown;
+                }
+                &:last-child {
+                    padding-right: 0;
+                    border-right: 0;
+                    margin-right: 0;
+                    width: 30.5%;
+                    @media only screen and (max-width: $width767-mobile) {
+                        width: 100%;
+                        border-bottom: 0;
+                    }
+                }
+                .news-image {
+                    margin-bottom: 25px;
+                }
+                .article-type {
+                    color: $color_brown;
+                    text-transform: uppercase;
+                    font-family: $font-universe-bold;
+                }
+                .article-text {
+                    display: none;
+                }
+                h4 {
+                    font-size: $font-20;
+                    font-weight: bold;
+                    color: $color_black;
+                    margin: 0 0 10px;
+                    min-height: 70px;
+                    a {
+                       color: $color_black;
+                    }
+                }
+                .news-date {
+                    margin-bottom: 10px;
+                    color: $color_grey;
+                    font-family: $font-universe-light;
+                    clear: both;
+                }
+                .news-body {
+                    font-size: $font-18;
+                    line-height: 24px;
+                    font-family: $font-universe-light;
+                }
+               .readmore-text {
+
+                    a {
+                        color: $color_black;
+                        font-family: $font-universe-bold;
+                        text-transform: uppercase;
+                        font-size: 16px;
+                    }
+                    .inthemedia-read-more {
+                        @media only screen and (max-width: $width767-mobile) {
+                           float: left;
+                        }
+                    }
+                }
+                .all-read-more {
+                        float: left;
+                        margin: 0 5px 0 0;
+                        &.media {
+                          display: none;
+                        }
+                    }
+                .inthemedia-read-more {
+                    margin: 0 5px 0 0;
+                    float: left;
+                    display: none;
+                    @media only screen and (max-width: $width767-mobile) {
+                        float: none;
+                    }
+                    &.media {
+                        display: block;
+                    }
+                }
+
+            }
+        }
+    }
+
+    /* News from community*/
+    .news-community {
+        @extend .news-block;
+        .inthemedia-read-more {
+            @media only screen and (max-width: $width767-mobile) {
+                float: left;
+            }
+        }
+        .article-type {
+            min-height: 27px;
+        }
+    }
+
+    /*Multimedia and career block*/
+    .multimedia-block {
+        width: 769px;
+        float: left;
+        padding-right: 25px;
+        border-right: 1px solid $color_brown;
+        @media only screen and (max-width: $width1024-ipadl) {
+            width: 50%;
+        }
+        @media only screen and (max-width: $width768-ipadp) {
+            width: 100%;
+            border-right: 0;
+            border-bottom: 1px solid $color_brown;
+            padding-right: 0;
+        }
+        .view-content {
+           margin-top: 20px;
+            .grid-social-block_picture img {
+                max-height: 100% !important;
+            }
+            .grid-social-block_date {
+                margin: -25px 0 5px;
+                @media only screen and (max-width: $width767-mobile) {
+                  margin-top: 0;
+                }
+            }
+        }
+    }
+
+    .akdn_news_page_careers_content {
+        float: right;
+        width: 371px;
+        padding-left: 25px;
+        @media only screen and (max-width: $width1024-ipadl) {
+            width: 50%;
+        }
+        @media only screen and (max-width: $width768-ipadp) {
+            width: 100%;
+            padding-left: 0;
+            margin-top: 20px;
+        }
+        .akdn-news-page-careers {
+            margin-top: 20px;
+/*            .career-akdn-logo {
+                background: url('../images/__logo.png') center 0 no-repeat;
+                height: 56px;
+                width: 100%;
+                margin-bottom: 20px;
+            }*/
+            .careers-block-content {
+                border-bottom: 1px solid $color_grey;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                font-size: $font-20;
+                h4 {
+                    font-size: $font-20;
+                    color: $color_black;
+                    font-family: $font-universe-bold;
+                }
+                .job-description {
+                   font-family: $font-universe-light;
+                   margin-bottom: 10px;
+                }
+            }
+            .job-link {
+               a {
+                   color: $color_black;
+                   font-family: $font-universe-light;
+                   text-transform: uppercase;
+                 }
+            }
+        }
+        .all-jobs-link {
+            @extend .job-link;
+            font-size: $font-20;
+            a {
+                font-size: $font-20;
+            }
+        }
+    }
+
+    .internal-news-page-footer {
+        padding: 20px 0;
+        font-size: $font-18;
+        line-height: 16px;
+        font-family: $font-universe-light;
+        .internal-news-page-footer-left {
+            float: left;
+            color: $color_brown;
+            @media only screen and (max-width: $width767-mobile) {
+                float: none;
+                display: block;
+                margin-bottom: 10px;
+                line-height: normal;
+            }
+        }
+        .internal-news-page-footer-right {
+            float: right;
+            @media only screen and (max-width: $width768-ipadp) {
+                float: none;
+            }
+            @media only screen and (max-width: $width767-mobile) {
+                display: block;
+            }
+            h5 {
+                display: inline-block;
+                vertical-align: top;
+                margin: 0 5px 0 0;
+                font-size: $font-18;
+            }
+            a {
+                display: inline-block;
+                vertical-align: top;
+            }
+        }
+    }
+
+}
+
+@media only screen and (max-width: $width1172) {
+    .akdn_main_body {
+        width: 100%;
+    }
+}

@@ -1,0 +1,15 @@
+<?php
+
+$menu = menu_get_object('node');
+if (!empty($menu->field_publication_file)) {
+  global $language;
+  print("<pre>".print_r($menu, true)."</pre>");exit;
+  $fid = $menu->field_publication_file[$language->language][0]['fid'];
+  $file = file_load($fid);
+  $file_url = file_create_url($file->uri);
+  print("<pre>".print_r($file_url, true)."</pre>");exit;
+  echo '<div class="field field-name-field-publication-file field-type-file field-label-hidden"><div class="field-items"><div class="field-item even"><span class="file"><img class="file-icon" alt="PDF icon" title="application/pdf" src="/modules/file/icons/application-pdf.png"> <a href="/fr/file/544286/download?token=6oH22Dec" type="application/pdf; length=2294228">'. t("Download") .'</a> <span class="file-size">(2.19 MB)</span></span></div></div></div>';
+
+}
+?>
+

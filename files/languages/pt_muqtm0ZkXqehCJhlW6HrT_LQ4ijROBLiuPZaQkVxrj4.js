@@ -1,0 +1,1 @@
+Drupal.locale = { 'strings': {"":{"Size":"Tamanho","Other":"Outro","Prev":"Prec","February":"Fevereiro","June":"Junho","September":"Setembro","October":"Outubro","December":"Dezembro"}} };
