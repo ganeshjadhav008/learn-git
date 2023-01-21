@@ -1,0 +1,41 @@
+{#
+/**
+ * @file
+ * Theme override for a views exposed form.
+ *
+ * Available variables:
+ * - form: A render element representing the form.
+ *
+ * @see template_preprocess_views_exposed_form()
+ */
+#}
+{% if q is not empty %}
+  {#
+    This ensures that, if clean URLs are off, the 'q' is added first,
+    as a hidden form element, so that it shows up first in the POST URL.
+  #}
+{{ q }}
+{% endif %}
+<div class="form--inline clearfix">
+{% if form.field_ingredients is not empty %}
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4">
+        {{ form.field_ingredients }}
+      </div>
+      <div class="col-sm-4">
+        {{ form.field_recipe_category }}
+      </div>
+      <div class="col-sm-4">
+        {{ form.field_tags }}
+      </div>
+    </div>
+  </div>
+   {{ form.actions }}
+{% else %}       
+  {{ form }}
+{% endif %}
+</div>
+
+
+
